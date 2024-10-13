@@ -97,6 +97,7 @@ This section highlights the key programming languages, frameworks, and libraries
 
 * [![Dart][Dart-logo]][Dart-url]
 * [![Flutter][Flutter-logo]][Flutter-url]
+* [![Selenium][Selenium-logo]][Selenium-url]
 * [![Java][Java-logo]][Java-url]
 * [![Angular][Angular.io]][Angular-url]
 * [![Svelte][Svelte.dev]][Svelte-url]
@@ -253,6 +254,8 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 [Next-url]: https://nextjs.org/
 [Dart-logo]: https://img.shields.io/badge/Dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white
 [Dart-url]: https://dart.dev/
+[Selenium-logo]: https://img.shields.io/badge/-selenium-%43B02A?style=for-the-badge&logo=selenium&logoColor=white
+[Selenium-url]: https://www.selenium.dev/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/
 [Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
