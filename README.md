@@ -98,6 +98,7 @@ This section highlights the key programming languages, frameworks, and libraries
 * [![Dart][Dart-logo]][Dart-url]
 * [![Flutter][Flutter-logo]][Flutter-url]
 * [![Java][Java-logo]][Java-url]
+* [![Selenium][Selenium-logo]][Selenium-url]
 * [![Elasticsearch][Elasticsearch.com]][Elasticsearch-url]
 * [![SpringBoot][SpringBoot.com]][SpringBoot-url]
 * [![PostgreSQL][PostgreSQL.com]][Postgre-url]
