@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'register.dart'; // Import the RegisterPage
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,21 +25,38 @@ class LoginPage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              // Login title
+              // Register title with updated font and size
               const Text(
-                'Login',
+                'Register',
                 style: TextStyle(
-                  fontFamily: 'DMSans',
-                  fontSize: 13,
+                  fontFamily: 'DMSans', // Set font to DM Sans
+                  fontSize: 13,          // Set font size to 13
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
+              // Name text field
+              SizedBox(
+                width: 300, // Limit width
+                child: TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    labelStyle: const TextStyle(
+                      fontFamily: 'DMSans',
+                      fontSize: 16.5,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               // Email text field
               SizedBox(
-                width: 300,
+                width: 300, // Limit width
                 child: TextField(
                   decoration: InputDecoration(
                     labelText: 'Email',
@@ -58,7 +74,7 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 20),
               // Password text field
               SizedBox(
-                width: 300,
+                width: 300, // Limit width
                 child: TextField(
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -74,43 +90,39 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Register text with navigation to RegisterPage
+              // Login text with new color
               GestureDetector(
                 onTap: () {
-                  // Navigate to RegisterPage
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const RegisterPage()),
-                  );
+                  // Add Login logic here
                 },
                 child: const Text(
-                  'Do you have any account? Register',
+                  'Do you have any account? Login',
                   style: TextStyle(
-                    color: Color(0xFF474740),
+                    color: Color(0xFF474740), // Set text color to #474740
                     fontSize: 16,
                   ),
                 ),
               ),
               const SizedBox(height: 30),
-              // Login button
+              // Register button
               SizedBox(
-                width: 300,
+                width: 300, // Limit width
                 child: ElevatedButton(
                   onPressed: () {
-                    // Add Login logic here
+                    // Add Register logic here
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBBA87C),
+                    backgroundColor: const Color(0xFFBBA87C), // Set background color to #BBA87C
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   child: const Text(
-                    'Login',
+                    'Register',
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.white,
+                      color: Colors.white, // Set text color to #FFFFFF
                     ),
                   ),
                 ),
