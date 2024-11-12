@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard.dart';
 import 'create.dart';
+import 'profile.dart';
 
 void main() {
   runApp(const MainApp());
@@ -21,6 +22,7 @@ class MainApp extends StatelessWidget {
       routes: {
         'dashboard': (context) => const DashboardPage(),
         'create': (context) => const CreatePage(),
+        'profile': (context) => const ProfilePage(),
       },
     );
   }
