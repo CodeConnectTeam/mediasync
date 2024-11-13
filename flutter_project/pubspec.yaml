@@ -24,3 +24,6 @@ flutter:
     - family: DMSans
       fonts:
         - asset: assets/fonts/DMSans.ttf
+
+  uses-material-design: true
+
