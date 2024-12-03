@@ -82,6 +82,8 @@ class SideBar extends StatelessWidget {
                 onPressed: () {
                   if (item['label'] == 'Logout') {
                     // Add logout functionality here
+                    // Temporarily navigate to login page
+                    Navigator.pushNamed(context, 'login');
                   } else if (item['label'] == selectedMenu) {
                     // Do not navigate to the same page
                   } else {

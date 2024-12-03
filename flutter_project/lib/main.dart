@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard.dart';
 import 'create.dart';
+import 'login.dart';
 import 'profile.dart';
 
 void main() {
@@ -23,6 +24,7 @@ class MainApp extends StatelessWidget {
         'dashboard': (context) => const DashboardPage(),
         'create': (context) => const CreatePage(),
         'profile': (context) => const ProfilePage(),
+        'login': (context) => const LoginPage(),
       },
     );
   }

@@ -7,7 +7,8 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4EEE2), // Set background color for the whole page
+      backgroundColor:
+          const Color(0xFFF4EEE2), // Set background color for the whole page
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -78,9 +79,10 @@ class LoginPage extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   // Navigate to RegisterPage
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const RegisterPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const RegisterPage()),
                   );
                 },
                 child: const Text(

@@ -6,7 +6,8 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4EEE2), // Set background color for the whole page
+      backgroundColor:
+          const Color(0xFFF4EEE2), // Set background color for the whole page
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -30,7 +31,7 @@ class RegisterPage extends StatelessWidget {
                 'Register',
                 style: TextStyle(
                   fontFamily: 'DMSans', // Set font to DM Sans
-                  fontSize: 13,          // Set font size to 13
+                  fontSize: 13, // Set font size to 13
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -95,11 +96,17 @@ class RegisterPage extends StatelessWidget {
                 onTap: () {
                   // Add Login logic here
                 },
-                child: const Text(
-                  'Do you have any account? Login',
-                  style: TextStyle(
-                    color: Color(0xFF474740), // Set text color to #474740
-                    fontSize: 16,
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigate to LoginPage
+                    Navigator.pushReplacementNamed(context, 'login');
+                  },
+                  child: const Text(
+                    'Do you have any account? Login',
+                    style: TextStyle(
+                      color: Color(0xFF474740), // Set text color to #474740
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -112,7 +119,8 @@ class RegisterPage extends StatelessWidget {
                     // Add Register logic here
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBBA87C), // Set background color to #BBA87C
+                    backgroundColor: const Color(
+                        0xFFBBA87C), // Set background color to #BBA87C
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
