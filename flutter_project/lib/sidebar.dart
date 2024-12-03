@@ -10,12 +10,20 @@ class SideBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> menuItems = [
       {'label': 'Dashboard', 'icon': Icons.dashboard, 'route': 'dashboard'},
-      {'label': 'Social Accounts', 'icon': Icons.account_circle, 'route': 'social_accounts'},
+      {
+        'label': 'Social Accounts',
+        'icon': Icons.account_circle,
+        'route': 'social_accounts'
+      },
       {'label': 'Schedule', 'icon': Icons.schedule, 'route': 'schedule'},
       {'label': 'Create', 'icon': Icons.create, 'route': 'create'},
       {'label': 'Analytics', 'icon': Icons.analytics, 'route': 'analytics'},
       {'label': 'Profile', 'icon': Icons.person, 'route': 'profile'},
-      {'label': 'Management', 'icon': Icons.manage_accounts, 'route': 'management'},
+      {
+        'label': 'Management',
+        'icon': Icons.manage_accounts,
+        'route': 'management'
+      },
       {'label': 'Logout', 'icon': Icons.logout, 'route': 'logout'},
     ];
 
@@ -40,17 +48,22 @@ class SideBar extends StatelessWidget {
           const SizedBox(height: 20),
           for (var item in menuItems)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
               child: TextButton.icon(
                 icon: Icon(
                   item['icon'],
-                  color: item['label'] == 'Logout' ? const Color(0xFFFF6666) : Colors.white,
+                  color: item['label'] == 'Logout'
+                      ? const Color(0xFFFF6666)
+                      : Colors.white,
                   size: 20,
                 ),
                 label: Text(
                   item['label'],
                   style: TextStyle(
-                    color: item['label'] == 'Logout' ? const Color(0xFFFF6666) : Colors.white,
+                    color: item['label'] == 'Logout'
+                        ? const Color(0xFFFF6666)
+                        : Colors.white,
                     fontSize: 16,
                     fontFamily: 'DMSans',
                   ),
@@ -69,6 +82,8 @@ class SideBar extends StatelessWidget {
                 onPressed: () {
                   if (item['label'] == 'Logout') {
                     // Add logout functionality here
+                  } else if (item['label'] == selectedMenu) {
+                    // Do not navigate to the same page
                   } else {
                     Navigator.pushNamed(context, item['route']);
                   }
