@@ -1,5 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_project/schedule.dart';
 import 'dashboard.dart';
 import 'create.dart';
 import 'login.dart';
@@ -24,6 +25,7 @@ class MainApp extends StatelessWidget {
         'dashboard': (context) => const DashboardPage(),
         'create': (context) => const CreatePage(),
         'profile': (context) => const ProfilePage(),
+        'schedule': (context) => const SchedulePage(),
         'login': (context) => const LoginPage(),
       },
     );
