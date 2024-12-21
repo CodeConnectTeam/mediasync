@@ -1,6 +1,7 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_project/schedule.dart';
+import 'package:flutter_project/social_accounts.dart';
 import 'dashboard.dart';
 import 'create.dart';
 import 'login.dart';
@@ -27,6 +28,7 @@ class MainApp extends StatelessWidget {
         'profile': (context) => const ProfilePage(),
         'schedule': (context) => const SchedulePage(),
         'login': (context) => const LoginPage(),
+        'social_accounts': (context) => const SocialAccountsPage(),
       },
     );
   }
