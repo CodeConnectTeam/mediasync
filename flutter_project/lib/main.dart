@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project/schedule.dart';
 import 'package:flutter_project/social_accounts.dart';
+import 'analytics.dart';
 import 'dashboard.dart';
 import 'create.dart';
 import 'login.dart';
@@ -29,6 +30,7 @@ class MainApp extends StatelessWidget {
         'schedule': (context) => const SchedulePage(),
         'login': (context) => const LoginPage(),
         'social_accounts': (context) => const SocialAccountsPage(),
+        'analytics': (context) => const AnalyticsPage(),
       },
     );
   }
