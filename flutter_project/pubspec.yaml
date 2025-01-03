@@ -9,14 +9,22 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-
 flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+
+  # To add assets to your application, add an assets section, like this:
+  uses-material-design: true
+
   fonts:
     - family: KingredModern
       fonts:
@@ -24,6 +32,4 @@ flutter:
     - family: DMSans
       fonts:
         - asset: assets/fonts/DMSans.ttf
-
-  uses-material-design: true
 

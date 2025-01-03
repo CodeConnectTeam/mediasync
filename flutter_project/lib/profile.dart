@@ -1,12 +1,16 @@
 // profile.dart
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
-
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Retrieve the arguments passed from LoginPage
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    final email = arguments?['email'] ?? 'No email';
+    final role = arguments?['role'] ?? 'No role';
+
     return Scaffold(
       body: Row(
         children: [
@@ -30,9 +34,9 @@ class ProfilePage extends StatelessWidget {
                   // Profile Fields with horizontal layout
                   _buildProfileField('Name', 'John Doe'),
                   const SizedBox(height: 20),
-                  _buildProfileField('Role', 'User'),
+                  _buildProfileField('Role', role), // Displaying the role
                   const SizedBox(height: 20),
-                  _buildProfileField('Email', 'johndoe@gmail.com'),
+                  _buildProfileField('Email', email), // Displaying the email
                   const SizedBox(height: 20),
                   _buildProfileField('Password', '********'),
                   const SizedBox(height: 30),

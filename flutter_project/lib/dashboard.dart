@@ -11,7 +11,7 @@ class DashboardPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F0E8),
       body: Row(
         children: [
-          SideBar(selectedMenu: "Dashboard"), // Sidebar
+          const SideBar(selectedMenu: "Dashboard"), // Sidebar
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,7 +25,7 @@ class DashboardPage extends StatelessWidget {
                       children: [
                         _buildStatsRow(), // Stats row
                         const SizedBox(height: 20),
-                        Expanded(
+                        const Expanded(
                           child: WeeklySchedule(),
                         ),
                         const SizedBox(height: 20),
@@ -35,66 +35,6 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebar() {
-    // Mock sidebar with menu items
-    return Container(
-      width: 200,
-      color: const Color(0xFF4A696F),
-      child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Text(
-              'MediaSync',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildSidebarItem(Icons.dashboard, 'Dashboard', isSelected: true),
-          _buildSidebarItem(Icons.favorite, 'Social Accounts'),
-          _buildSidebarItem(Icons.calendar_today, 'Schedule'),
-          _buildSidebarItem(Icons.create, 'Create'),
-          _buildSidebarItem(Icons.analytics, 'Analytics'),
-          const Spacer(),
-          _buildSidebarItem(Icons.person, 'Profile'),
-          _buildSidebarItem(Icons.people, 'Management'),
-          _buildSidebarItem(Icons.logout, 'Log Out', color: Colors.red),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebarItem(IconData icon, String title,
-      {bool isSelected = false, Color? color}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: isSelected
-          ? BoxDecoration(
-              color: const Color(0xFFD3C5A4),
-              borderRadius: BorderRadius.circular(10),
-            )
-          : null,
-      child: Row(
-        children: [
-          Icon(icon, color: color ?? Colors.white),
-          const SizedBox(width: 10),
-          Text(
-            title,
-            style: TextStyle(
-              color: color ?? Colors.white,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ],
@@ -157,7 +97,7 @@ class DashboardPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Color(0xFF4A696F),
+        color: const Color(0xFF4A696F),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.black12),
       ),
@@ -182,7 +122,7 @@ class DashboardPage extends StatelessWidget {
                   value,
                   style: TextStyle(
                     fontSize: 18,
-                    color: isEvent ? Color(0xFFF5F0E8) : color,
+                    color: isEvent ? const Color(0xFFF5F0E8) : color,
                   ),
                 ),
               ],
@@ -216,10 +156,10 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 15),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'Jake Peralta',
                   style: TextStyle(

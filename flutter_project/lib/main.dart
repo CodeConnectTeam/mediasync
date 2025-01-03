@@ -1,4 +1,3 @@
-// main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_project/schedule.dart';
 import 'package:flutter_project/social_accounts.dart';
@@ -21,15 +20,17 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: 'dashboard',
+      initialRoute: '/login', // Set the initial route to '/login'
       routes: {
-        'dashboard': (context) => const DashboardPage(),
-        'create': (context) => const CreatePage(),
-        'profile': (context) => const ProfilePage(),
-        'schedule': (context) => const SchedulePage(),
-        'login': (context) => const LoginPage(),
-        'social_accounts': (context) => const SocialAccountsPage(),
+        '/dashboard': (context) =>
+            const DashboardPage(), // Routes must begin with '/'
+        '/create': (context) => const CreatePage(),
+        '/profile': (context) => const ProfilePage(),
+        '/schedule': (context) => const SchedulePage(),
+        '/login': (context) => const LoginPage(),
+        '/social_accounts': (context) => const SocialAccountsPage(),
       },
+      // Ensure routes begin with '/'
     );
   }
 }

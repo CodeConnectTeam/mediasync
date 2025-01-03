@@ -43,7 +43,7 @@ class SchedulePage extends StatelessWidget {
 
                   // Calendar
                   const SizedBox(height: 20),
-                  Expanded(child: WeeklySchedule()),
+                  const Expanded(child: WeeklySchedule()),
                 ],
               ),
             ),

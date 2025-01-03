@@ -9,22 +9,26 @@ class SideBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> menuItems = [
-      {'label': 'Dashboard', 'icon': Icons.dashboard, 'route': 'dashboard'},
+      {'label': 'Dashboard', 'icon': Icons.dashboard, 'route': '/dashboard'},
       {
         'label': 'Social Accounts',
         'icon': Icons.account_circle,
-        'route': 'social_accounts'
+        'route': '/social_accounts'
       },
-      {'label': 'Schedule', 'icon': Icons.schedule, 'route': 'schedule'},
-      {'label': 'Create', 'icon': Icons.create, 'route': 'create'},
-      {'label': 'Analytics', 'icon': Icons.analytics, 'route': 'analytics'},
-      {'label': 'Profile', 'icon': Icons.person, 'route': 'profile'},
+      {'label': 'Schedule', 'icon': Icons.schedule, 'route': '/schedule'},
+      {'label': 'Create', 'icon': Icons.create, 'route': '/create'},
+      {'label': 'Analytics', 'icon': Icons.analytics, 'route': '/analytics'},
+      {'label': 'Profile', 'icon': Icons.person, 'route': '/profile'},
       {
         'label': 'Management',
         'icon': Icons.manage_accounts,
-        'route': 'management'
+        'route': '/management'
       },
-      {'label': 'Logout', 'icon': Icons.logout, 'route': 'logout'},
+      {
+        'label': 'Logout',
+        'icon': Icons.logout,
+        'route': '/login'
+      }, // Ensure this route is '/login'
     ];
 
     return Container(
@@ -82,8 +86,7 @@ class SideBar extends StatelessWidget {
                 onPressed: () {
                   if (item['label'] == 'Logout') {
                     // Add logout functionality here
-                    // Temporarily navigate to login page
-                    Navigator.pushNamed(context, 'login');
+                    Navigator.pushNamed(context, '/login');
                   } else if (item['label'] == selectedMenu) {
                     // Do not navigate to the same page
                   } else {

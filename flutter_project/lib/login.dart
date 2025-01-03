@@ -1,14 +1,69 @@
 import 'package:flutter/material.dart';
-import 'register.dart'; // Import the RegisterPage
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
+  Future<void> _login(
+      String email, String password, BuildContext context) async {
+    final url = Uri.parse('http://13.60.226.247:8080/api/auth/login');
+    final Map<String, dynamic> body = {
+      "email": email,
+      "password": password,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        // Parse the response body
+        final responseBody = jsonDecode(response.body);
+        final String token = responseBody['token'];
+        final String userEmail = responseBody['email'];
+        final String role = responseBody['role'];
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Login successful: ${responseBody['message']}')),
+        );
+
+        // After successful login, navigate to the dashboard
+        Navigator.pushReplacementNamed(
+          context,
+          '/dashboard', // Go to the dashboard page
+          arguments: {
+            'token': token,
+            'email': userEmail,
+            'role': role,
+          },
+        );
+      } else {
+        // If login fails
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF4EEE2), // Set background color for the whole page
+      backgroundColor: const Color(0xFFF4EEE2),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -27,7 +82,6 @@ class LoginPage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              // Login title
               const Text(
                 'Login',
                 style: TextStyle(
@@ -39,10 +93,10 @@ class LoginPage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
-              // Email text field
               SizedBox(
                 width: 300,
                 child: TextField(
+                  controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     labelStyle: const TextStyle(
@@ -57,10 +111,10 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Password text field
               SizedBox(
                 width: 300,
                 child: TextField(
+                  controller: passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     labelStyle: const TextStyle(
@@ -75,45 +129,33 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Register text with navigation to RegisterPage
-              GestureDetector(
-                onTap: () {
-                  // Navigate to RegisterPage
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const RegisterPage()),
-                  );
+              ElevatedButton(
+                onPressed: () {
+                  final email = emailController.text.trim();
+                  final password = passwordController.text.trim();
+
+                  if (email.isEmpty || password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Email and Password cannot be empty')),
+                    );
+                    return;
+                  }
+
+                  _login(email, password, context);
                 },
-                child: const Text(
-                  'Do you have any account? Register',
-                  style: TextStyle(
-                    color: Color(0xFF474740),
-                    fontSize: 16,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBBA87C),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              // Login button
-              SizedBox(
-                width: 300,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Add Login logic here
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBBA87C),
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
                   ),
                 ),
               ),
