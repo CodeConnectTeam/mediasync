@@ -1,4 +1,3 @@
-// sidebar.dart
 import 'package:flutter/material.dart';
 
 class SideBar extends StatelessWidget {
@@ -10,11 +9,7 @@ class SideBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> menuItems = [
       {'label': 'Dashboard', 'icon': Icons.dashboard, 'route': '/dashboard'},
-      {
-        'label': 'Social Accounts',
-        'icon': Icons.account_circle,
-        'route': '/social_accounts'
-      },
+      {'label': 'Drafts', 'icon': Icons.menu, 'route': '/drafts'},
       {'label': 'Schedule', 'icon': Icons.schedule, 'route': '/schedule'},
       {'label': 'Create', 'icon': Icons.create, 'route': '/create'},
       {'label': 'Analytics', 'icon': Icons.analytics, 'route': '/analytics'},
@@ -24,11 +19,7 @@ class SideBar extends StatelessWidget {
         'icon': Icons.manage_accounts,
         'route': '/management'
       },
-      {
-        'label': 'Logout',
-        'icon': Icons.logout,
-        'route': '/login'
-      }, // Ensure this route is '/login'
+      {'label': 'Logout', 'icon': Icons.logout, 'route': '/logout'},
     ];
 
     return Container(

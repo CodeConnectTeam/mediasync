@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'authprovider.dart'; // AuthProvider'ı ekleyin
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -29,6 +31,13 @@ class LoginPage extends StatelessWidget {
         final String userEmail = responseBody['email'];
         final String role = responseBody['role'];
 
+        // Print the token to console (güvenlik için gerçek uygulamada gizlenebilir)
+        print('Token: $token');
+
+        // Provider ile token'ı saklama
+        Provider.of<AuthProvider>(context, listen: false).setToken(token);
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Login successful: ${responseBody['message']}')),
@@ -38,11 +47,6 @@ class LoginPage extends StatelessWidget {
         Navigator.pushReplacementNamed(
           context,
           '/dashboard', // Go to the dashboard page
-          arguments: {
-            'token': token,
-            'email': userEmail,
-            'role': role,
-          },
         );
       } else {
         // If login fails
