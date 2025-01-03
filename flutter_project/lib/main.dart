@@ -35,7 +35,7 @@ class MainApp extends StatelessWidget {
         '/drafts': (context) => DraftPage(),
         '/create': (context) => const CreatePage(),
         '/profile': (context) => const ProfilePage(),
-        '/schedule': (context) => const SchedulePage(),
+        '/schedule': (context) => SchedulePage(),
       },
     );
   }

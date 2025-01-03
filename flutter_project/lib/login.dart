@@ -7,59 +7,49 @@ import 'authprovider.dart'; // AuthProvider'ı ekleyin
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
-  Future<void> _login(
-      String email, String password, BuildContext context) async {
-    final url = Uri.parse('http://13.60.226.247:8080/api/auth/login');
-    final Map<String, dynamic> body = {
-      "email": email,
-      "password": password,
-    };
+ Future<void> _login(String email, String password, BuildContext context) async {
+  final url = Uri.parse('http://13.60.226.247:8080/api/auth/login');
+  final Map<String, dynamic> body = {
+    "email": email,
+    "password": password,
+  };
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode(body),
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      final String token = responseBody['token'];
+
+      // Save token, email, and password in AuthProvider
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.setToken(token);
+      authProvider.setEmail(email);
+      authProvider.setPassword(password);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login successful: ${responseBody['message']}')),
       );
 
-      if (response.statusCode == 200) {
-        // Parse the response body
-        final responseBody = jsonDecode(response.body);
-        final String token = responseBody['token'];
-        final String userEmail = responseBody['email'];
-        final String role = responseBody['role'];
-
-        // Print the token to console (güvenlik için gerçek uygulamada gizlenebilir)
-        print('Token: $token');
-
-        // Provider ile token'ı saklama
-        Provider.of<AuthProvider>(context, listen: false).setToken(token);
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Login successful: ${responseBody['message']}')),
-        );
-
-        // After successful login, navigate to the dashboard
-        Navigator.pushReplacementNamed(
-          context,
-          '/dashboard', // Go to the dashboard page
-        );
-      } else {
-        // If login fails
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${response.body}')),
-        );
-      }
-    } catch (e) {
+      // Navigate to the dashboard
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
+        SnackBar(content: Text('Login failed: ${response.body}')),
       );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An error occurred: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +140,7 @@ class LoginPage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFBBA87C),
-                  minimumSize: const Size(double.infinity, 50),
+                  minimumSize: const Size(320, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),

@@ -1,20 +1,28 @@
-// profile.dart
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
-class ProfilePage extends StatelessWidget {
+import 'package:provider/provider.dart';
+import 'authprovider.dart';
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  bool _isPasswordVisible = false;
+
+  @override
   Widget build(BuildContext context) {
-    // Retrieve the arguments passed from LoginPage
-    final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
-    final email = arguments?['email'] ?? 'No email';
-    final role = arguments?['role'] ?? 'No role';
+    final authProvider = Provider.of<AuthProvider>(context);
+    final email = authProvider.email ?? 'No email';
+    final password = authProvider.password ?? 'No password';
 
     return Scaffold(
       body: Row(
         children: [
-          const SideBar(selectedMenu: 'Profile'), // Sidebar with "Profile" selected
+          const SideBar(selectedMenu: 'Profile'),
           Expanded(
             child: Container(
               color: const Color(0xFFF4EEE2),
@@ -31,38 +39,9 @@ class ProfilePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  // Profile Fields with horizontal layout
-                  _buildProfileField('Name', 'John Doe'),
+                  _buildProfileField('Email', email),
                   const SizedBox(height: 20),
-                  _buildProfileField('Role', role), // Displaying the role
-                  const SizedBox(height: 20),
-                  _buildProfileField('Email', email), // Displaying the email
-                  const SizedBox(height: 20),
-                  _buildProfileField('Password', '********'),
-                  const SizedBox(height: 30),
-                  // Save Profile Button
-                  SizedBox(
-                    width: 200,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Add save profile functionality here
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFBBA87C), // Button background color
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save Profile',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildPasswordField('Password', password),
                 ],
               ),
             ),
@@ -72,44 +51,92 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  // Helper method for profile fields (name and value side by side)
   Widget _buildProfileField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // Label text (name, role, email, etc.)
-          SizedBox(
-            width: 100, // Set width for labels to ensure alignment
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(width: 20), // Space between label and value
-          // Value text (John Doe, johndoe@gmail.com, etc.)
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            width: 200, // Set width for value containers to ensure alignment
-            decoration: BoxDecoration(
-              color: const Color(0xFF4A696F), // Background color for field
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
+        ),
+        const SizedBox(width: 20),
+        Container(
+          padding: const EdgeInsets.all(12.0),
+          width: 200,
+          decoration: BoxDecoration(
+            color: const Color(0xFF4A696F),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.white,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+        Container(
+          width: 200,
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4A696F),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _isPasswordVisible ? value : '********',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                  overflow:
+                      TextOverflow.ellipsis, // Ensure long text is handled
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
