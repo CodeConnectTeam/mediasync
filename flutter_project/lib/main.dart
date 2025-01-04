@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'authprovider.dart';
 import 'login.dart';
 import 'dashboard.dart';
+import 'metrics.dart';
 
 void main() {
   runApp(
@@ -38,7 +39,7 @@ class MainApp extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
         '/schedule': (context) => SchedulePage(),
         '/management': (context) => ManagementPage(),
-
+        '/metrics': (context) => const MetricsPage(),
       },
     );
   }

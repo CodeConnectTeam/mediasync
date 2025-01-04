@@ -12,7 +12,7 @@ class SideBar extends StatelessWidget {
       {'label': 'Drafts', 'icon': Icons.menu, 'route': '/drafts'},
       {'label': 'Schedule', 'icon': Icons.schedule, 'route': '/schedule'},
       {'label': 'Create', 'icon': Icons.create, 'route': '/create'},
-      {'label': 'Analytics', 'icon': Icons.analytics, 'route': '/analytics'},
+      {'label': 'Metrics', 'icon': Icons.analytics, 'route': '/metrics'},
       {'label': 'Profile', 'icon': Icons.person, 'route': '/profile'},
       {
         'label': 'Management',
