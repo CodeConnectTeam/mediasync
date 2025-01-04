@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project/create.dart';
+import 'package:flutter_project/management.dart';
 import 'package:flutter_project/profile.dart';
 import 'package:flutter_project/schedule.dart';
 import 'package:flutter_project/drafts.dart';
@@ -36,6 +37,8 @@ class MainApp extends StatelessWidget {
         '/create': (context) => const CreatePage(),
         '/profile': (context) => const ProfilePage(),
         '/schedule': (context) => SchedulePage(),
+        '/management': (context) => ManagementPage(),
+
       },
     );
   }
