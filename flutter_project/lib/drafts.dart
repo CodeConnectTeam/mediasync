@@ -37,7 +37,9 @@ class DraftPage extends StatelessWidget {
                             future: fetchTwitterDrafts(token),
                             builder: (context, snapshot) {
                               return _buildDraftList(
+                                context,
                                 snapshot,
+                                token,
                                 isTwitter: true,
                               );
                             },
@@ -48,7 +50,9 @@ class DraftPage extends StatelessWidget {
                             future: fetchInstagramDrafts(token),
                             builder: (context, snapshot) {
                               return _buildDraftList(
+                                context,
                                 snapshot,
+                                token,
                                 isTwitter: false,
                               );
                             },
@@ -93,7 +97,8 @@ class DraftPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDraftList(AsyncSnapshot<List<Map<String, dynamic>>> snapshot,
+  Widget _buildDraftList(BuildContext context,
+      AsyncSnapshot<List<Map<String, dynamic>>> snapshot, String token,
       {required bool isTwitter}) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return const Center(child: CircularProgressIndicator());
@@ -121,14 +126,15 @@ class DraftPage extends StatelessWidget {
         itemBuilder: (context, index) {
           var draft = drafts[index];
           return isTwitter
-              ? _buildTwitterDraftItem(draft)
-              : _buildInstagramDraftItem(draft);
+              ? _buildTwitterDraftItem(context, draft, token)
+              : _buildInstagramDraftItem(context, draft, token);
         },
       );
     }
   }
 
-  Widget _buildTwitterDraftItem(Map<String, dynamic> draft) {
+  Widget _buildTwitterDraftItem(
+      BuildContext context, Map<String, dynamic> draft, String token) {
     return ListTile(
       title: Text(
         draft['tweetText'] ?? 'No text available',
@@ -141,35 +147,18 @@ class DraftPage extends StatelessWidget {
       trailing: IconButton(
         icon: const Icon(Icons.delete, color: Colors.red),
         onPressed: () {
-          // Add delete functionality
+          _deleteDraft(context, token, draft['id'], isTwitter: true);
         },
       ),
     );
   }
 
-  Widget _buildInstagramDraftItem(Map<String, dynamic> draft) {
+  Widget _buildInstagramDraftItem(
+      BuildContext context, Map<String, dynamic> draft, String token) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: draft['imageUrl'] != null
-            ? Image.network(
-                draft['imageUrl'],
-                width: 60,
-                height: 60,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.broken_image,
-                    size: 60,
-                    color: Colors.grey,
-                  ); // Display a placeholder if image fails to load
-                },
-              )
-            : const Icon(
-                Icons.image_not_supported,
-                size: 60,
-                color: Colors.grey,
-              ),
+        leading: const Icon(Icons.image, size: 40, color: Colors.grey),
         title: Text(
           draft['caption'] ?? 'No caption available',
           style: const TextStyle(fontSize: 16),
@@ -190,11 +179,37 @@ class DraftPage extends StatelessWidget {
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () {
-            // Add delete functionality
+            _deleteDraft(context, token, draft['id'], isTwitter: false);
           },
         ),
       ),
     );
+  }
+
+  Future<void> _deleteDraft(BuildContext context, String token, int id,
+      {required bool isTwitter}) async {
+    final platform = isTwitter ? 'TWITTER' : 'INSTAGRAM';
+    final url = Uri.parse('http://13.60.226.247:8080/api/posts/$platform/$id');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Draft deleted successfully!')),
+        );
+      } else {
+        throw Exception(
+            'Failed to delete draft. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   String _formatDate(dynamic createdAt) {
