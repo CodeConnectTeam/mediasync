@@ -178,7 +178,7 @@ class SchedulePage extends StatelessWidget {
     final url = Uri.parse('http://13.60.226.247:8080/api/schedule');
 
     try {
-      final response = await http.get(
+      final response = await http.post(
         url,
         headers: {
           'Authorization':

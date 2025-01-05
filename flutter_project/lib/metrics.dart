@@ -1,99 +1,160 @@
 import 'package:flutter/material.dart';
-import 'sidebar.dart'; // Import your sidebar widget here
-import 'package:fl_chart/fl_chart.dart'; // Assuming you're using fl_chart for the graphs
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'dart:convert'; // For JSON decoding
+import 'sidebar.dart';
+import 'login.dart';
+import 'authprovider.dart'; // Assuming this is the provider for Auth
 
-class MetricsPage extends StatelessWidget {
+class MetricsPage extends StatefulWidget {
   const MetricsPage({super.key});
 
   @override
+  _MetricsPageState createState() => _MetricsPageState();
+}
+
+class _MetricsPageState extends State<MetricsPage> {
+  // ScrollController to manage scroll and connect to the Scrollbar
+  final ScrollController _scrollController = ScrollController();
+
+  Future<List<Map<String, dynamic>>> fetchInstagramMetrics(String token) async {
+    final url =
+        Uri.parse('http://13.60.226.247:8080/api/posts/INSTAGRAM/metrics');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = List.from(json.decode(response.body));
+        return data.map((item) => Map<String, dynamic>.from(item)).toList();
+      } else {
+        throw Exception('Failed to load metrics');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch metrics: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final String? token = Provider.of<AuthProvider>(context).token;
+
+    if (token == null) {
+      return const LoginPage(); // Token yoksa giriş sayfasına yönlendir
+    }
+
     return Scaffold(
       body: Row(
         children: [
-          // Sidebar Section (from CreatePage)
+          // Sidebar Section
           const SideBar(
-            selectedMenu: 'Metrics', // Sidebar with "Metrics" selected
+            selectedMenu: 'Metrics', // Sidebar'da "Metrics" seçili
           ),
-          // Main content section
+          // Ana içerik kısmı
           Expanded(
-            child: SingleChildScrollView(
-              // Content is now scrollable
-              child: Container(
-                color: const Color(0xFFF4EEE2), // Right area background color
-                padding: const EdgeInsets.all(30.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Container(
+              color: const Color(0xFFF4EEE2), // Sağ alanın arka plan rengi
+              padding: const EdgeInsets.all(10.0), // Padding azaltıldı
+              child: Scrollbar(
+                controller: _scrollController, // Attach the controller
+                thumbVisibility: true, // Make the scrollbar visible
+                child: ListView(
+                  controller: _scrollController, // Attach the controller
                   children: [
                     const Text(
                       'Metrics Dashboard',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 24, // Font büyüklüğü azaltıldı
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    // Instagram Metrics Section
+                    const SizedBox(height: 16), // Yükseklik azaltıldı
                     const Text(
                       'Instagram Metrics',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22, // Font büyüklüğü azaltıldı
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        metricCard(Icons.favorite, 'Likes', 1024),
-                        metricCard(Icons.comment, 'Comments', 320),
-                        metricCard(Icons.share, 'Shares', 150),
-                      ],
+                    const SizedBox(height: 10), // Yükseklik azaltıldı
+                    // Instagram Metrics verilerini al ve göster
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: fetchInstagramMetrics(token),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Text('No metrics available');
+                        } else {
+                          final metrics = snapshot.data!;
+                          return Column(
+                            children: metrics.map((metric) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 12.0), // Daha az boşluk ekleniyor
+                                child: Container(
+                                  padding: const EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF4EEE2),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 2,
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .spaceEvenly, // Boşluk daha eşit olacak
+                                        children: [
+                                          metricCard(Icons.favorite, 'Likes',
+                                              metric['like_count']),
+                                          metricCard(Icons.comment, 'Comments',
+                                              metric['comments_count']),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Image.network(
+                                        metric['media_url'],
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Caption: ${metric['caption']}',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Link: ${metric['permalink']}',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        }
+                      },
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Engagement Over Time',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    engagementGraph(),
-                    const SizedBox(height: 40),
-
-                    // Twitter Metrics Section
-                    const Text(
-                      'Twitter Metrics',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        metricCard(Icons.message, 'Replies', 500),
-                        metricCard(Icons.favorite_border, 'Likes', 1200),
-                        metricCard(Icons.repeat, 'Retweets', 450),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Engagement Over Time',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    engagementGraph(),
-                    const SizedBox(height: 30), // Adjusted the bottom spacing
                   ],
                 ),
               ),
@@ -107,8 +168,8 @@ class MetricsPage extends StatelessWidget {
   // Metric card widget
   Widget metricCard(IconData icon, String label, int value) {
     return Container(
-      width: 100,
-      padding: const EdgeInsets.all(12.0),
+      width: 80, // Genişlik küçültüldü
+      padding: const EdgeInsets.all(8.0), // Padding küçültüldü
       decoration: BoxDecoration(
         color: const Color(0xFFF4EEE2),
         borderRadius: BorderRadius.circular(12),
@@ -122,59 +183,29 @@ class MetricsPage extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center, // Dikeyde ortalama
         children: [
-          Icon(icon, size: 40, color: const Color(0xFF4A696F)),
-          const SizedBox(height: 8),
+          Icon(icon,
+              size: 30,
+              color: const Color(0xFF4A696F)), // İkon boyutu küçültüldü
+          const SizedBox(height: 4), // Yükseklik azaltıldı
           Text(
             label,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 10, // Font küçültüldü
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2), // Yükseklik azaltıldı
           Text(
             '$value',
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 16, // Font küçültüldü
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // Engagement graph widget using fl_chart
-  Widget engagementGraph() {
-    return SizedBox(
-      height: 180, // Adjusted height for better fitting
-      child: LineChart(
-        LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: [
-                FlSpot(0, 1),
-                FlSpot(1, 3),
-                FlSpot(2, 2),
-                FlSpot(3, 5),
-                FlSpot(4, 4),
-                FlSpot(5, 6),
-                FlSpot(6, 5),
-              ],
-              isCurved: true,
-              color: const Color.fromARGB(255, 95, 143, 182),
-              belowBarData: BarAreaData(
-                show: true,
-                color: Colors.blue.withOpacity(0.3),
-              ),
-            ),
-          ],
-          titlesData: FlTitlesData(show: false), // Hide axis titles
-          gridData: FlGridData(show: false), // Hide grid lines
-          borderData: FlBorderData(show: false), // Hide border lines
-        ),
       ),
     );
   }

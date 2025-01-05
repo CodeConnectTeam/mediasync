@@ -1,28 +1,39 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'authprovider.dart';
 import 'sidebar.dart';
 
 class ManagementPage extends StatefulWidget {
   const ManagementPage({super.key});
 
   @override
-  State<ManagementPage> createState() => _ManagementPageState();
+  _ManagementPageState createState() => _ManagementPageState();
 }
 
 class _ManagementPageState extends State<ManagementPage> {
-  String selectedRole = 'Worker'; // Default selection for dropdown menu
+  String selectedRole = 'WORKER'; // Default selection for dropdown menu
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final String? token = Provider.of<AuthProvider>(context).token;
+
+    if (token == null) {
+      return const Scaffold(
+        body: Center(child: Text('You need to log in first')),
+      ); // Token not available
+    }
+
     return Scaffold(
       body: Row(
         children: [
-          const SideBar(
-              selectedMenu: 'Management'), // Sidebar with "Management" selected
+          const SideBar(selectedMenu: 'Management'),
           Expanded(
             child: Container(
-              color: const Color(0xFFF4EEE2), // Background color
+              color: const Color(0xFFF4EEE2),
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +57,7 @@ class _ManagementPageState extends State<ManagementPage> {
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    width: 500, // Set fixed width
+                    width: 500,
                     child: DropdownButtonFormField<String>(
                       value: selectedRole,
                       onChanged: (String? newValue) {
@@ -54,7 +65,7 @@ class _ManagementPageState extends State<ManagementPage> {
                           selectedRole = newValue!;
                         });
                       },
-                      items: <String>['Worker', 'Manager']
+                      items: <String>['WORKER', 'MANAGER']
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
@@ -89,7 +100,7 @@ class _ManagementPageState extends State<ManagementPage> {
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    width: 500, // Set fixed width
+                    width: 500,
                     child: TextField(
                       controller: emailController,
                       decoration: InputDecoration(
@@ -118,7 +129,7 @@ class _ManagementPageState extends State<ManagementPage> {
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    width: 500, // Set fixed width
+                    width: 500,
                     child: TextField(
                       controller: passwordController,
                       obscureText: true,
@@ -139,17 +150,15 @@ class _ManagementPageState extends State<ManagementPage> {
                   ),
                   const SizedBox(height: 20),
                   Container(
-                    width: 500, // Set fixed width
+                    width: 500,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Logic to add user or manager
                         final role = selectedRole;
                         final email = emailController.text;
                         final password = passwordController.text;
 
-                        // Perform logic with collected values
-                        print(
-                            'Role: $role, Email: $email, Password: $password');
+                        // Call the register API method
+                        registerUser(token, role, email, password);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFBBA87C),
@@ -175,5 +184,48 @@ class _ManagementPageState extends State<ManagementPage> {
         ],
       ),
     );
+  }
+
+  Future<void> registerUser(
+      String? token, String role, String email, String password) async {
+    if (token == null) {
+      // Token is not available, handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Token not available')),
+      );
+      return;
+    }
+
+    final url = Uri.parse('http://13.60.226.247:8080/api/auth/register');
+
+    final body = jsonEncode({
+      'email': email,
+      'password': password,
+       'role': role
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User registered successfully!')),
+        );
+      } else {
+        throw Exception(
+            'Failed to register user. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 }

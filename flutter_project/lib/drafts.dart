@@ -144,11 +144,22 @@ class DraftPage extends StatelessWidget {
         'Created At: ${_formatDate(draft['createdAt'])}',
         style: const TextStyle(color: Colors.grey),
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        onPressed: () {
-          _deleteDraft(context, token, draft['id'], isTwitter: true);
-        },
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              _deleteDraft(context, token, draft['id'], isTwitter: true);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.publish, color: Colors.green),
+            onPressed: () {
+              _publishDraft(context, token, draft['id'], isTwitter: true);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -158,7 +169,18 @@ class DraftPage extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: const Icon(Icons.image, size: 40, color: Colors.grey),
+        leading: draft['imageUrl'] != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  draft['imageUrl'],
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : const Icon(Icons.image,
+                size: 40, color: Colors.grey), // Fallback if no image URL
         title: Text(
           draft['caption'] ?? 'No caption available',
           style: const TextStyle(fontSize: 16),
@@ -176,14 +198,52 @@ class DraftPage extends StatelessWidget {
             ),
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
-          onPressed: () {
-            _deleteDraft(context, token, draft['id'], isTwitter: false);
-          },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                _deleteDraft(context, token, draft['id'], isTwitter: false);
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.publish, color: Colors.green),
+              onPressed: () {
+                _publishDraft(context, token, draft['id'], isTwitter: false);
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _publishDraft(BuildContext context, String token, int id,
+      {required bool isTwitter}) async {
+    final platform = isTwitter ? 'TWITTER' : 'INSTAGRAM';
+    final url =
+        Uri.parse('http://13.60.226.247:8080/api/posts/$platform/publish/$id');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Draft published successfully!')),
+        );
+      } else {
+        throw Exception(
+            'Failed to publish draft. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   Future<void> _deleteDraft(BuildContext context, String token, int id,
