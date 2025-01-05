@@ -17,8 +17,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // Fetch Instagram Metrics with token
   Future<List<Map<String, dynamic>>> fetchInstagramMetrics(String token) async {
-    final url =
-        Uri.parse('http://13.60.226.247:8080/api/posts/INSTAGRAM/metrics');
+    final url = Uri.parse('http://13.60.226.247:8080/api/posts/instagram/');
     try {
       final response = await http.get(
         url,
@@ -32,17 +31,16 @@ class _DashboardPageState extends State<DashboardPage> {
         final List<dynamic> data = List.from(json.decode(response.body));
         return data.map((item) => Map<String, dynamic>.from(item)).toList();
       } else {
-        throw Exception('Failed to load Instagram metrics');
+        throw Exception('Failed to load Instagram posts');
       }
     } catch (e) {
-      throw Exception('Failed to fetch Instagram metrics: $e');
+      throw Exception('Failed to fetch Instagram posts: $e');
     }
   }
 
   // Fetch Twitter Metrics with token
   Future<List<Map<String, dynamic>>> fetchTwitterMetrics(String token) async {
-    final url =
-        Uri.parse('http://13.60.226.247:8080/api/posts/TWITTER/metrics');
+    final url = Uri.parse('http://13.60.226.247:8080/api/posts/twitter');
     try {
       final response = await http.get(
         url,
@@ -56,10 +54,10 @@ class _DashboardPageState extends State<DashboardPage> {
         final List<dynamic> data = List.from(json.decode(response.body));
         return data.map((item) => Map<String, dynamic>.from(item)).toList();
       } else {
-        throw Exception('Failed to load Twitter metrics');
+        throw Exception('Failed to load Twitter posts');
       }
     } catch (e) {
-      throw Exception('Failed to fetch Twitter metrics: $e');
+      throw Exception('Failed to fetch Twitter posts: $e');
     }
   }
 
@@ -136,13 +134,60 @@ class _DashboardPageState extends State<DashboardPage> {
                 return const Center(
                     child: Text('No Instagram posts available.'));
               } else {
-                final metrics = snapshot.data!;
+                // Filter posts where status is "PUBLISHED"
+                final metrics = snapshot.data!
+                    .where((post) => post['status'] == 'PUBLISHED')
+                    .toList();
                 return ListView.builder(
                   controller: _scrollController, // ScrollController
                   scrollDirection: Axis.horizontal, // Horizontal scroll
                   itemCount: metrics.length, // Based on data count
                   itemBuilder: (context, index) =>
                       _buildInstagramPost(metrics[index]),
+                );
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+// Twitter section widget
+  Widget _buildTwitterSection(String token) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Twitter Posts",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 400, // Twitter section height
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: fetchTwitterMetrics(token), // Fetch Twitter data
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No Twitter posts available.'));
+              } else {
+                // Filter posts where status is "PUBLISHED"
+                final metrics = snapshot.data!
+                    .where((post) => post['status'] == 'PUBLISHED')
+                    .toList();
+                return ListView.builder(
+                  controller: _scrollController, // ScrollController
+                  itemCount: metrics.length, // Based on data count
+                  itemBuilder: (context, index) =>
+                      _buildTwitterPost(metrics[index]),
                 );
               }
             },
@@ -171,56 +216,20 @@ class _DashboardPageState extends State<DashboardPage> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              post['media_url'] ??
-                  'https://picsum.photos/200', // Post image URL
+              post['imageUrl'] ?? 'https://picsum.photos/200', // Post image URL
               width: double.infinity,
               height: 150,
               fit: BoxFit.cover,
             ),
           ),
+          const SizedBox(height: 10),
+          // Username (default to "mediasyncteam" if not available)
+          Text(
+            post['username'] ?? '@mediasyncteam', // Display username or default
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ],
       ),
-    );
-  }
-
-  // Twitter section widget
-  Widget _buildTwitterSection(String token) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Twitter Posts",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 200, // Twitter section height
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: fetchTwitterMetrics(token), // Fetch Twitter data
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No Twitter posts available.'));
-              } else {
-                final metrics = snapshot.data!;
-                return ListView.builder(
-                  controller: _scrollController, // ScrollController
-                  itemCount: metrics.length, // Based on data count
-                  itemBuilder: (context, index) =>
-                      _buildTwitterPost(metrics[index]),
-                );
-              }
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -248,12 +257,12 @@ class _DashboardPageState extends State<DashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  post['username'] ?? 'TwitterUser', // Display username
+                  post['username'] ?? '@mediasync252408', // Display username
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  post['text'] ?? 'No content', // Display tweet content
+                  post['tweetText'] ?? 'No content', // Display tweet content
                   overflow:
                       TextOverflow.ellipsis, // Ensure it fits within screen
                   maxLines: 3, // Limit lines to prevent overflow

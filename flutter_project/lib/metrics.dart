@@ -17,6 +17,10 @@ class _MetricsPageState extends State<MetricsPage> {
   // ScrollController to manage scroll and connect to the Scrollbar
   final ScrollController _scrollController = ScrollController();
 
+  // Refresh indicators
+  bool _isRefreshingInstagram = false;
+  bool _isRefreshingTwitter = false;
+
   Future<List<Map<String, dynamic>>> fetchInstagramMetrics(String token) async {
     final url =
         Uri.parse('http://13.60.226.247:8080/api/posts/INSTAGRAM/metrics');
@@ -60,6 +64,46 @@ class _MetricsPageState extends State<MetricsPage> {
       }
     } catch (e) {
       throw Exception('Failed to fetch metrics: $e');
+    }
+  }
+
+  // Method to refresh data for Instagram
+  void _refreshInstagramData() {
+    setState(() {
+      _isRefreshingInstagram = true;
+    });
+    final String? token =
+        Provider.of<AuthProvider>(context, listen: false).token;
+    if (token != null) {
+      fetchInstagramMetrics(token).then((data) {
+        setState(() {
+          _isRefreshingInstagram = false;
+        });
+      }).catchError((error) {
+        setState(() {
+          _isRefreshingInstagram = false;
+        });
+      });
+    }
+  }
+
+  // Method to refresh data for Twitter
+  void _refreshTwitterData() {
+    setState(() {
+      _isRefreshingTwitter = true;
+    });
+    final String? token =
+        Provider.of<AuthProvider>(context, listen: false).token;
+    if (token != null) {
+      fetchTwitterMetrics(token).then((data) {
+        setState(() {
+          _isRefreshingTwitter = false;
+        });
+      }).catchError((error) {
+        setState(() {
+          _isRefreshingTwitter = false;
+        });
+      });
     }
   }
 
@@ -134,6 +178,16 @@ class _MetricsPageState extends State<MetricsPage> {
             ),
           ),
         ],
+      ),
+      // Floating action button for refresh
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Refresh Instagram and Twitter data when pressed
+          _refreshInstagramData();
+          _refreshTwitterData();
+        },
+        child: const Icon(Icons.refresh),
+        backgroundColor: const Color(0xFFBBA87C),
       ),
     );
   }

@@ -7,49 +7,50 @@ import 'authprovider.dart'; // AuthProvider'ı ekleyin
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
- Future<void> _login(String email, String password, BuildContext context) async {
-  final url = Uri.parse('http://13.60.226.247:8080/api/auth/login');
-  final Map<String, dynamic> body = {
-    "email": email,
-    "password": password,
-  };
+  Future<void> _login(
+      String email, String password, BuildContext context) async {
+    final url = Uri.parse('http://13.60.226.247:8080/api/auth/login');
+    final Map<String, dynamic> body = {
+      "email": email,
+      "password": password,
+    };
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode == 200) {
-      final responseBody = jsonDecode(response.body);
-      final String token = responseBody['token'];
-
-      // Save token, email, and password in AuthProvider
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.setToken(token);
-      authProvider.setEmail(email);
-      authProvider.setPassword(password);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login successful: ${responseBody['message']}')),
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(body),
       );
 
-      // Navigate to the dashboard
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        final String token = responseBody['token'];
+
+        // Save token, email, and password in AuthProvider
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider.setToken(token);
+        authProvider.setEmail(email);
+        authProvider.setPassword(password);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login successfull')),
+        );
+
+        // Navigate to the dashboard
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${response.body}')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${response.body}')),
+        SnackBar(content: Text('An error occurred: $e')),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('An error occurred: $e')),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
