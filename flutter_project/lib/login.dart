@@ -27,15 +27,18 @@ class LoginPage extends StatelessWidget {
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
         final String token = responseBody['token'];
+        final String role =
+            responseBody['role']; // Retrieve the role from the response
 
-        // Save token, email, and password in AuthProvider
+        // Save token, email, password, and role in AuthProvider
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         authProvider.setToken(token);
         authProvider.setEmail(email);
         authProvider.setPassword(password);
+        authProvider.setRole(role); // Set the role in AuthProvider
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login successfull')),
+          SnackBar(content: Text('Login successful')),
         );
 
         // Navigate to the dashboard

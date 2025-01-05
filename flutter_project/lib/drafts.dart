@@ -11,8 +11,9 @@ class DraftPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? token = Provider.of<AuthProvider>(context).token;
 
+    // Kullanıcı oturum açmamışsa LoginPage'e yönlendirilir
     if (token == null) {
-      return const LoginPage(); // Redirect to login page if token is not available
+      return const LoginPage();
     }
 
     return Scaffold(
@@ -34,27 +35,19 @@ class DraftPage extends StatelessWidget {
                         children: [
                           _buildSectionHeader("Twitter Drafts"),
                           FutureBuilder<List<Map<String, dynamic>>>(
-                            future: fetchTwitterDrafts(token),
+                            future: fetchDrafts(token, platform: 'twitter'),
                             builder: (context, snapshot) {
-                              return _buildDraftList(
-                                context,
-                                snapshot,
-                                token,
-                                isTwitter: true,
-                              );
+                              return _buildDraftList(context, snapshot, token,
+                                  isTwitter: true);
                             },
                           ),
                           const SizedBox(height: 30),
                           _buildSectionHeader("Instagram Drafts"),
                           FutureBuilder<List<Map<String, dynamic>>>(
-                            future: fetchInstagramDrafts(token),
+                            future: fetchDrafts(token, platform: 'instagram'),
                             builder: (context, snapshot) {
-                              return _buildDraftList(
-                                context,
-                                snapshot,
-                                token,
-                                isTwitter: false,
-                              );
+                              return _buildDraftList(context, snapshot, token,
+                                  isTwitter: false);
                             },
                           ),
                         ],
@@ -70,6 +63,7 @@ class DraftPage extends StatelessWidget {
     );
   }
 
+  // Sayfa başlığını oluşturan metod
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -84,19 +78,18 @@ class DraftPage extends StatelessWidget {
     );
   }
 
+  // Bölüm başlıklarını oluşturan metod
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
       ),
     );
   }
 
+  // Taslak listesini oluşturan metod
   Widget _buildDraftList(BuildContext context,
       AsyncSnapshot<List<Map<String, dynamic>>> snapshot, String token,
       {required bool isTwitter}) {
@@ -112,58 +105,38 @@ class DraftPage extends StatelessWidget {
       );
     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
       return const Center(
-        child: Text(
-          'No drafts available.',
-          style: TextStyle(fontSize: 18),
-        ),
-      );
-    } else {
-      var drafts = snapshot.data!;
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: drafts.length,
-        itemBuilder: (context, index) {
-          var draft = drafts[index];
-          return isTwitter
-              ? _buildTwitterDraftItem(context, draft, token)
-              : _buildInstagramDraftItem(context, draft, token);
-        },
+        child: Text('No drafts available.', style: TextStyle(fontSize: 18)),
       );
     }
-  }
 
-  Widget _buildTwitterDraftItem(
-      BuildContext context, Map<String, dynamic> draft, String token) {
-    return ListTile(
-      title: Text(
-        draft['tweetText'] ?? 'No text available',
-        style: const TextStyle(fontSize: 16),
-      ),
-      subtitle: Text(
-        'Created At: ${_formatDate(draft['createdAt'])}',
-        style: const TextStyle(color: Colors.grey),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              _deleteDraft(context, token, draft['id'], isTwitter: true);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.publish, color: Colors.green),
-            onPressed: () {
-              _publishDraft(context, token, draft['id'], isTwitter: true);
-            },
-          ),
-        ],
-      ),
+    final drafts = snapshot.data!;
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: drafts.length,
+      itemBuilder: (context, index) {
+        final draft = drafts[index];
+        return isTwitter
+            ? _buildTwitterDraftItem(context, draft, token)
+            : _buildInstagramDraftItem(context, draft, token);
+      },
     );
   }
 
+  // Twitter taslak öğesi
+  Widget _buildTwitterDraftItem(
+      BuildContext context, Map<String, dynamic> draft, String token) {
+    return ListTile(
+      title: Text(draft['tweetText'] ?? 'No text available',
+          style: const TextStyle(fontSize: 16)),
+      subtitle: Text('Created At: ${_formatDate(draft['createdAt'])}',
+          style: const TextStyle(color: Colors.grey)),
+      trailing:
+          _buildActionButtons(context, token, draft['id'], isTwitter: true),
+    );
+  }
+
+  // Instagram taslak öğesi
   Widget _buildInstagramDraftItem(
       BuildContext context, Map<String, dynamic> draft, String token) {
     return Card(
@@ -172,53 +145,85 @@ class DraftPage extends StatelessWidget {
         leading: draft['imageUrl'] != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  draft['imageUrl'],
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.network(draft['imageUrl'],
+                    width: 40, height: 40, fit: BoxFit.cover),
               )
-            : const Icon(Icons.image,
-                size: 40, color: Colors.grey), // Fallback if no image URL
-        title: Text(
-          draft['caption'] ?? 'No caption available',
-          style: const TextStyle(fontSize: 16),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status: ${draft['status'] ?? 'Unknown'}',
-              style: const TextStyle(color: Colors.grey),
-            ),
-            Text(
-              'Created At: ${_formatDate(draft['createdAt'])}',
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                _deleteDraft(context, token, draft['id'], isTwitter: false);
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.publish, color: Colors.green),
-              onPressed: () {
-                _publishDraft(context, token, draft['id'], isTwitter: false);
-              },
-            ),
-          ],
-        ),
+            : const Icon(Icons.image, size: 40, color: Colors.grey),
+        title: Text(draft['caption'] ?? 'No caption available',
+            style: const TextStyle(fontSize: 16)),
+        subtitle: Text('Status: ${draft['status'] ?? 'Unknown'}',
+            style: const TextStyle(color: Colors.grey)),
+        trailing:
+            _buildActionButtons(context, token, draft['id'], isTwitter: false),
       ),
     );
   }
 
+  Widget _buildActionButtons(BuildContext context, String token, int id,
+      {required bool isTwitter}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: () =>
+              _deleteDraft(context, token, id, isTwitter: isTwitter),
+        ),
+        IconButton(
+          icon: const Icon(Icons.publish, color: Colors.green),
+          onPressed: () =>
+              _publishDraft(context, token, id, isTwitter: isTwitter),
+        ),
+        IconButton(
+          icon: const Icon(Icons.schedule, color: Colors.blue),
+          onPressed: () =>
+              _scheduleDraft(context, token, id, isTwitter: isTwitter),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _scheduleDraft(BuildContext context, String token, int id,
+      {required bool isTwitter}) async {
+    final url = Uri.parse('http://13.60.226.247:8080/api/schedule');
+
+    // Sabit bir zaman atadık. Bu zamanı dinamik hale getirmek isterseniz bir tarih seçici ekleyebilirsiniz.
+    final scheduledTime = "2024-12-27T15:00:00";
+
+    // Platform değeri dinamik olarak ayarlanıyor
+    final platform = isTwitter ? 'TWITTER' : 'INSTAGRAM';
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'post_id': id,
+          'scheduled_time': scheduledTime,
+          'is_active': true,
+          'platform': platform,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Draft scheduled successfully!')),
+        );
+      } else {
+        throw Exception(
+            'Failed to schedule draft. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Taslakları yayımlama metodu
   Future<void> _publishDraft(BuildContext context, String token, int id,
       {required bool isTwitter}) async {
     final platform = isTwitter ? 'TWITTER' : 'INSTAGRAM';
@@ -226,120 +231,74 @@ class DraftPage extends StatelessWidget {
         Uri.parse('http://13.60.226.247:8080/api/posts/$platform/publish/$id');
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
+      final response =
+          await http.post(url, headers: {'Authorization': 'Bearer $token'});
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Draft published successfully!')),
-        );
+            const SnackBar(content: Text('Draft published successfully!')));
       } else {
         throw Exception(
             'Failed to publish draft. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
+  // Taslakları silme metodu
   Future<void> _deleteDraft(BuildContext context, String token, int id,
       {required bool isTwitter}) async {
     final platform = isTwitter ? 'TWITTER' : 'INSTAGRAM';
     final url = Uri.parse('http://13.60.226.247:8080/api/posts/$platform/$id');
 
     try {
-      final response = await http.delete(
-        url,
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
+      final response =
+          await http.delete(url, headers: {'Authorization': 'Bearer $token'});
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Draft deleted successfully!')),
-        );
+            const SnackBar(content: Text('Draft deleted successfully!')));
       } else {
         throw Exception(
             'Failed to delete draft. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
+  // Tarih biçimlendirme metodu
   String _formatDate(dynamic createdAt) {
     try {
       if (createdAt is String) {
         final date = DateTime.parse(createdAt).toLocal();
         return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      } else if (createdAt is List) {
-        DateTime date = DateTime(
-          createdAt[0],
-          createdAt[1],
-          createdAt[2],
-          createdAt[3],
-          createdAt[4],
-          createdAt[5],
-        );
-        return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      } else {
-        return 'Invalid date format';
       }
+      return 'Invalid date format';
     } catch (e) {
       return 'Error formatting date: $e';
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchTwitterDrafts(String token) async {
-    final url = Uri.parse('http://13.60.226.247:8080/api/posts/twitter/drafts');
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.cast<Map<String, dynamic>>();
-      } else {
-        throw Exception(
-          'Failed to load drafts. Server responded with status: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      throw Exception('Error fetching drafts: $e');
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> fetchInstagramDrafts(String token) async {
+  // Taslakları getiren metod
+  Future<List<Map<String, dynamic>>> fetchDrafts(String token,
+      {required String platform}) async {
     final url =
-        Uri.parse('http://13.60.226.247:8080/api/posts/instagram/drafts');
+        Uri.parse('http://13.60.226.247:8080/api/posts/$platform/drafts');
 
     try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.cast<Map<String, dynamic>>();
       } else {
         throw Exception(
-          'Failed to load drafts. Server responded with status: ${response.statusCode}',
-        );
+            'Failed to load drafts. Status: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error fetching drafts: $e');

@@ -18,6 +18,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final authProvider = Provider.of<AuthProvider>(context);
     final email = authProvider.email ?? 'No email';
     final password = authProvider.password ?? 'No password';
+    final role =
+        authProvider.role ?? 'No role'; // Access role from AuthProvider
 
     return Scaffold(
       body: Row(
@@ -40,6 +42,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(height: 30),
                   _buildProfileField('Email', email),
+                  const SizedBox(height: 10),
+                  _buildProfileField('Role', role), // Display the role here
                   const SizedBox(height: 20),
                   _buildPasswordField('Password', password),
                 ],

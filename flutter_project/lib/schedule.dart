@@ -8,90 +8,130 @@ import 'login.dart';
 import 'sidebar.dart';
 
 class SchedulePage extends StatelessWidget {
+  const SchedulePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final String? token = Provider.of<AuthProvider>(context).token;
 
     if (token == null) {
-      return const LoginPage(); // Token yoksa giriş sayfasına yönlendir
+      return const LoginPage();
     }
 
-    return Scaffold(
-      body: Row(
-        children: [
-          const SideBar(
-              selectedMenu: 'Schedule'), // Sidebar with "Schedule" selected
-          Expanded(
-            child: Container(
-              color: const Color(0xFFF4EEE2),
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  const Text(
-                    'Schedule',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        body: Row(
+          children: [
+            const SideBar(selectedMenu: 'Schedule'),
+            Expanded(
+              child: Container(
+                color: const Color(0xFFF4EEE2),
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Schedule',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Schedule section
-                  Expanded(
-                    child: FutureBuilder<List<Map<String, dynamic>>>(
-                      future: fetchSchedules(
-                          token), // Pass the token to fetchSchedules
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Failed to load schedules. Error: ${snapshot.error}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 16, color: Colors.red),
-                            ),
-                          );
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const Center(
-                            child: Text('No schedules available.',
-                                style: TextStyle(fontSize: 18)),
-                          );
-                        } else {
-                          var schedules = snapshot.data!;
-                          return ListView.builder(
-                            itemCount: schedules.length,
-                            itemBuilder: (context, index) {
-                              var schedule = schedules[index];
-                              return _buildScheduleItem(schedule);
-                            },
-                          );
-                        }
-                      },
+                    const SizedBox(height: 20),
+                    TabBar(
+                      labelColor: Colors.black,
+                      indicatorColor: Colors.blue,
+                      tabs: const [
+                        Tab(text: 'Twitter'),
+                        Tab(text: 'Instagram'),
+                      ],
                     ),
-                  ),
-
-                  // Calendar
-                  const SizedBox(height: 20),
-                  const Expanded(child: WeeklySchedule()),
-                ],
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _buildPostList(
+                            context,
+                            token,
+                            apiEndpoint:
+                                'http://13.60.226.247:8080/api/posts/twitter',
+                            filterKey: 'status',
+                            filterValues: ['DRAFT', 'SCHEDULED'],
+                            textKey: 'tweetText',
+                          ),
+                          _buildPostList(
+                            context,
+                            token,
+                            apiEndpoint:
+                                'http://13.60.226.247:8080/api/posts/instagram',
+                            filterKey: 'status',
+                            filterValues: ['SCHEDULED'],
+                            textKey: 'caption',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // Helper method to build a single schedule item
-  Widget _buildScheduleItem(Map<String, dynamic> schedule) {
+  Widget _buildPostList(
+    BuildContext context,
+    String token, {
+    required String apiEndpoint,
+    required String filterKey,
+    required List<String> filterValues,
+    required String textKey,
+  }) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: fetchFilteredPosts(
+        token,
+        apiEndpoint,
+        filterKey: filterKey,
+        filterValues: filterValues,
+        textKey: textKey,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Failed to load posts. Error: ${snapshot.error}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, color: Colors.red),
+            ),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text(
+              'No posts available.',
+              style: TextStyle(fontSize: 18),
+            ),
+          );
+        } else {
+          final posts = snapshot.data!;
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              return _buildPostItem(post, textKey);
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildPostItem(Map<String, dynamic> post, String textKey) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Column(
@@ -99,7 +139,6 @@ class SchedulePage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Icon representing the social media platform
               Row(
                 children: [
                   CircleAvatar(
@@ -108,18 +147,17 @@ class SchedulePage extends StatelessWidget {
                   ),
                   const SizedBox(width: 20),
                   Text(
-                    'Scheduled to ${schedule['platform']} at ${_formatDate(schedule['scheduled_time'])}',
+                    '${textKey == "tweetText" ? "Tweet" : "Caption"}: ${post[textKey] ?? 'No content'}\n'
+                    'Created at: ${_formatCreatedAt(post['createdAt'])}',
                     style: const TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                 ],
               ),
-
-              // Action buttons
               Row(
                 children: [
                   TextButton(
                     onPressed: () {
-                      // Select Date action
+                      // Tarih seçme işlemi
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -130,7 +168,7 @@ class SchedulePage extends StatelessWidget {
                   const SizedBox(width: 10),
                   TextButton(
                     onPressed: () {
-                      // Accept action
+                      // Onaylama işlemi
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.green,
@@ -141,7 +179,7 @@ class SchedulePage extends StatelessWidget {
                   const SizedBox(width: 10),
                   TextButton(
                     onPressed: () {
-                      // Decline action
+                      // Reddetme işlemi
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.red,
@@ -159,51 +197,63 @@ class SchedulePage extends StatelessWidget {
     );
   }
 
-  // Helper method to format date
-  String _formatDate(dynamic scheduledTime) {
-    try {
-      if (scheduledTime is String) {
-        final date = DateTime.parse(scheduledTime).toLocal();
-        return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-      } else {
+  String _formatCreatedAt(dynamic createdAt) {
+    if (createdAt is List) {
+      try {
+        final date = DateTime(
+          createdAt[0],
+          createdAt[1],
+          createdAt[2],
+          createdAt[3],
+          createdAt[4],
+          createdAt[5],
+        ).toLocal();
+        return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
+            '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      } catch (e) {
         return 'Invalid date format';
       }
-    } catch (e) {
-      return 'Error formatting date: $e';
     }
+    return 'No date available';
   }
 
-  // Fetch schedules from the API
-  Future<List<Map<String, dynamic>>> fetchSchedules(String token) async {
-    final url = Uri.parse('http://13.60.226.247:8080/api/schedule');
+  Future<List<Map<String, dynamic>>> fetchFilteredPosts(
+    String token,
+    String apiEndpoint, {
+    required String filterKey,
+    required List<String> filterValues,
+    required String textKey,
+  }) async {
+    final url = Uri.parse(apiEndpoint);
 
     try {
-      final response = await http.post(
+      final response = await http.get(
         url,
         headers: {
-          'Authorization':
-              'Bearer $token', // Use the token provided from the provider
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+
+        // Belirli durumlara göre filtreleme
         return data
+            .where((e) => filterValues.contains(e[filterKey]))
             .map((e) => {
-                  'post_id': e['post_id'],
-                  'scheduled_time': e['scheduled_time'],
-                  'platform': e['platform'],
-                  'is_active': e['is_active'],
+                  'id': e['id'],
+                  textKey: e[textKey],
+                  'createdAt': e['createdAt'],
                 })
             .toList();
       } else {
         throw Exception(
-          'Failed to load schedules. Server responded with status: ${response.statusCode}',
+          'Failed to load posts. Server responded with status: ${response.statusCode}',
         );
       }
     } catch (e) {
-      throw Exception('Error fetching schedules: $e');
+      throw Exception('Error fetching posts: $e');
     }
   }
 }
