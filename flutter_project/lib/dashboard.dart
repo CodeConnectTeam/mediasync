@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'sidebar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:provider/provider.dart'; // Import provider
+import 'sidebar.dart'; // Assuming SideBar widget is available
+import 'authprovider.dart'; // Assuming AuthProvider is your auth provider class
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -9,8 +13,72 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  // Fetch Instagram Metrics with token
+  Future<List<Map<String, dynamic>>> fetchInstagramMetrics(String token) async {
+    final url =
+        Uri.parse('http://13.60.226.247:8080/api/posts/INSTAGRAM/metrics');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token', // Add Authorization header
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = List.from(json.decode(response.body));
+        return data.map((item) => Map<String, dynamic>.from(item)).toList();
+      } else {
+        throw Exception('Failed to load Instagram metrics');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch Instagram metrics: $e');
+    }
+  }
+
+  // Fetch Twitter Metrics with token
+  Future<List<Map<String, dynamic>>> fetchTwitterMetrics(String token) async {
+    final url =
+        Uri.parse('http://13.60.226.247:8080/api/posts/TWITTER/metrics');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token', // Add Authorization header
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = List.from(json.decode(response.body));
+        return data.map((item) => Map<String, dynamic>.from(item)).toList();
+      } else {
+        throw Exception('Failed to load Twitter metrics');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch Twitter metrics: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Retrieve token from the AuthProvider
+    final String? token = Provider.of<AuthProvider>(context).token;
+
+    // Check if token is null, if so redirect to login
+    if (token == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       body: Row(
         children: [
@@ -27,17 +95,11 @@ class _DashboardPageState extends State<DashboardPage> {
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
-                  // Use Flexible instead of Expanded for ListView in Column
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInstagramSection(), // Instagram section
-                        const SizedBox(height: 20),
-                        _buildTwitterSection(), // Twitter section
-                      ],
-                    ),
-                  ),
+                  // Instagram section
+                  _buildInstagramSection(token),
+                  const SizedBox(height: 40),
+                  // Twitter section
+                  _buildTwitterSection(token),
                 ],
               ),
             ),
@@ -47,7 +109,8 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildInstagramSection() {
+  // Instagram section widget
+  Widget _buildInstagramSection(String token) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -62,17 +125,66 @@ class _DashboardPageState extends State<DashboardPage> {
         const SizedBox(height: 10),
         SizedBox(
           height: 200, // Instagram section height
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 5, // Number of Instagram posts
-            itemBuilder: (context, index) => _buildInstagramPost(index),
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: fetchInstagramMetrics(token), // Fetch Instagram data
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                    child: Text('No Instagram posts available.'));
+              } else {
+                final metrics = snapshot.data!;
+                return ListView.builder(
+                  controller: _scrollController, // ScrollController
+                  scrollDirection: Axis.horizontal, // Horizontal scroll
+                  itemCount: metrics.length, // Based on data count
+                  itemBuilder: (context, index) =>
+                      _buildInstagramPost(metrics[index]),
+                );
+              }
+            },
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTwitterSection() {
+  // Build Instagram post widget
+  Widget _buildInstagramPost(Map<String, dynamic> post) {
+    return Container(
+      width: 150, // Width of each Instagram post
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 5, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          // Instagram post image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              post['media_url'] ??
+                  'https://picsum.photos/200', // Post image URL
+              width: double.infinity,
+              height: 150,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Twitter section widget
+  Widget _buildTwitterSection(String token) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -85,22 +197,38 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const SizedBox(height: 10),
-        // Directly use ListView without Expanded inside Column
         SizedBox(
-          height: 800, // Set a fixed height for ListView
-          child: ListView.builder(
-            itemCount: 5, // Number of Twitter posts
-            itemBuilder: (context, index) => _buildTwitterPost(index),
+          height: 200, // Twitter section height
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: fetchTwitterMetrics(token), // Fetch Twitter data
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No Twitter posts available.'));
+              } else {
+                final metrics = snapshot.data!;
+                return ListView.builder(
+                  controller: _scrollController, // ScrollController
+                  itemCount: metrics.length, // Based on data count
+                  itemBuilder: (context, index) =>
+                      _buildTwitterPost(metrics[index]),
+                );
+              }
+            },
           ),
         ),
       ],
     );
   }
 
-  Widget _buildInstagramPost(int index) {
+  // Build Twitter post widget
+  Widget _buildTwitterPost(Map<String, dynamic> post) {
     return Container(
-      width: 150, // Adjusted width for horizontal layout
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -108,68 +236,30 @@ class _DashboardPageState extends State<DashboardPage> {
           BoxShadow(color: Colors.black26, blurRadius: 5, offset: Offset(0, 2)),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: Colors.blue,
-                child: Icon(Icons.person, color: Colors.white),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'InstaUser $index',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+          const CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: Icon(Icons.person, color: Colors.white),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(width: 10),
           Expanded(
-            child: Image.network(
-              'https://picsum.photos/200/200?random=$index',
-              fit: BoxFit.cover,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTwitterPost(int index) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4A696F),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: Colors.lightBlue,
-                child: Icon(Icons.person, color: Colors.white),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'TwitterUser $index',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  post['username'] ?? 'TwitterUser', // Display username
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'This is a tweet content.',
-            style: TextStyle(color: Colors.white),
+                const SizedBox(height: 6),
+                Text(
+                  post['text'] ?? 'No content', // Display tweet content
+                  overflow:
+                      TextOverflow.ellipsis, // Ensure it fits within screen
+                  maxLines: 3, // Limit lines to prevent overflow
+                ),
+              ],
+            ),
           ),
         ],
       ),
