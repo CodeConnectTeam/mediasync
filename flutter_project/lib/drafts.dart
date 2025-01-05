@@ -6,7 +6,14 @@ import 'authprovider.dart';
 import 'login.dart';
 import 'sidebar.dart';
 
-class DraftPage extends StatelessWidget {
+class DraftPage extends StatefulWidget {
+  @override
+  _DraftPageState createState() => _DraftPageState();
+}
+
+class _DraftPageState extends State<DraftPage> {
+  DateTime? selectedDate;
+
   @override
   Widget build(BuildContext context) {
     final String? token = Provider.of<AuthProvider>(context).token;
@@ -176,21 +183,55 @@ class DraftPage extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.schedule, color: Colors.blue),
-          onPressed: () =>
-              _scheduleDraft(context, token, id, isTwitter: isTwitter),
+          onPressed: () => _selectDate(context, token, id, isTwitter),
         ),
       ],
     );
   }
 
+  Future<void> _selectDate(
+      BuildContext context, String token, int id, bool isTwitter) async {
+    // Show the date picker
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      // Show the time picker after selecting the date
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(
+            DateTime.now()), // Start with the current time
+      );
+
+      if (pickedTime != null) {
+        // Combine the selected date and time into a single DateTime object
+        final DateTime selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        // Schedule the draft with the combined date and time
+        _scheduleDraft(context, token, id, isTwitter, selectedDateTime);
+      }
+    }
+  }
+
   Future<void> _scheduleDraft(BuildContext context, String token, int id,
-      {required bool isTwitter}) async {
+      bool isTwitter, DateTime selectedDate) async {
     final url = Uri.parse('http://13.60.226.247:8080/api/schedule');
 
-    // Sabit bir zaman atadık. Bu zamanı dinamik hale getirmek isterseniz bir tarih seçici ekleyebilirsiniz.
-    final scheduledTime = "2024-12-27T15:00:00";
+    // Convert selected date and time to the desired format "yyyy-MM-ddTHH:mm:ss"
+    final formattedDate =
+        "${selectedDate.toIso8601String().split('T')[0]}T${selectedDate.hour.toString().padLeft(2, '0')}:${selectedDate.minute.toString().padLeft(2, '0')}:00";
 
-    // Platform değeri dinamik olarak ayarlanıyor
+    // Platform value dynamically adjusted
     final platform = isTwitter ? 'TWITTER' : 'INSTAGRAM';
 
     try {
@@ -202,7 +243,7 @@ class DraftPage extends StatelessWidget {
         },
         body: jsonEncode({
           'post_id': id,
-          'scheduled_time': scheduledTime,
+          'scheduled_time': formattedDate, // Use the selected time
           'is_active': true,
           'platform': platform,
         }),
